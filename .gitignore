@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Vscode files
+/.vscode
+.DS_Store
+
+# Output files
+*.gif
+*.txt
+*.png
+*.jpg
