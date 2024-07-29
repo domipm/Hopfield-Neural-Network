@@ -40,3 +40,7 @@
 *.txt
 *.png
 *.jpg
+
+# Ignore code used to loop over variables
+loop*.cpp
+loop*.py

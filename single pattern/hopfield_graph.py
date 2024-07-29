@@ -1,7 +1,6 @@
-#PROGRAMA QUE GENERA EL GIF DE LA EVOLUCIÓN DE LA MATRIZ SISTEMA Y LA GRÁFICA DE SOLAPAMIENTO
-#INPUT: Fichero entrada "output.txt" obtenido de "hopfield.cpp"
-#OUTPUT: Animación "output.gif"
-#OUTPUT: Gráfica de solapamiento en función de los pasos Monte Carlo "solapamiento.png"
+# Program that generates the gif animation of the evolution of system matrix and overlap graph
+# Input: "output.txt" obtained from "hopfield.cpp"
+# Output: animation "output.gif", overlap graph for each Monte-Carlo step "overlap.png"
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -12,7 +11,7 @@ plt.rcParams["animation.convert_path"] = "/usr/bin/convert"
 
 fname = "output"
 
-data = np.loadtxt(fname+".txt") #FICHERO DE MATRICES
+data = np.loadtxt(fname+".txt") # Matrix files
 print(data)
 
 color_dict = {0: '#2D4263', 1: '#C84B31'}
@@ -21,10 +20,10 @@ imax = max(label_dict)
 imin = min(label_dict)
 cmap = col.ListedColormap(color_dict.values())
 
-dim = int(len(data[0])) #DIMENSION DE LA MATRIZ
-iter = int(len(data[:,0])/(dim)) #NUMERO DE ITERACIONES
+dim = int(len(data[0]))             # Dimensions of matrix
+iter = int(len(data[:,0])/(dim))    # Number of iterations
 
-#MATRIZ
+# Matrix
 grid = np.zeros((dim,dim))
 
 def update(k):
