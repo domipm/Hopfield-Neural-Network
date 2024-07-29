@@ -1,34 +1,33 @@
-//PROGRAMA PRINCIPAL DE LA RED NEURONAL DE HOPFIELD
-//INPUT: Matriz binaria "moon.txt"
-//OUTPUT: Matriz salida para cada paso "output.txt"
-//OUTPUT: Salida solapamiento para cada paso "solapamiento.txt"
+//  HOPFIELD'S NEURAL NETWORK MODEL
+//  Input: Binary matrix "moon.txt"
+//  Output: Output binary matrix "output.txt", overlap for each step "overlap.txt"
 
 #include<cmath>
 #include<iostream>
 #include<ctime>
 #include"gsl_rng.h"
 
-#define SEED 84982490479247 //Semilla de números aleatorios
+#define SEED 84982490479247 // Random number seed
 
-#define FIN "moon.txt" //Fichero con matriz de entrada
+#define FIN "moon.txt" // Input matrix filename
 
-#define N 128 //Tamaño imagen
-#define ITER 20 //Número iteraciones(Pasos Monte-Carlo)
+#define N 128   // Image size
+#define ITER 20 // Number of Monte-Carlo steps to perform (iterations)
 
-float T = 10e-3; //Temperatura del sistema
+float T = 10e-3; // Temperature of the system
 
-float w[N][N][N][N] = {0}, theta[N][N] = {0}; //Pesos sinápticos y umbral de disparo
-float a = 0, H = 0, slpm = 0; //Parámetro a^mu, hamiltoniano, y solapamiento
-int d[N][N], s[N][N]; //Matriz patrón y sistema
+float w[N][N][N][N] = {0}, theta[N][N] = {0};   // Synaptic steps and trigger threshold
+float a = 0, H = 0, overlap = 0;                   // Parameter a^mu, hamiltonian, and overlap
+int d[N][N], s[N][N];                           // Pattern matrix and system matrix
 
-bool deformado = 1; //ALEATORIO == 0, DEFORMADO == 1
-float lambda = 0.9; //Deformación (Entre 0 y 1)
+bool noise_deform = 1; // Whether to deform (lambda) initial matrix
+float lambda = 0.9; // Random noise deformation
 
 using namespace std;
 
 gsl_rng *tau;
 
-//Mínimo entre dos float
+//  Minimum between floats
 float minimo(float a, float b) {
 
     if (a < b) return a;
@@ -39,7 +38,7 @@ float minimo(float a, float b) {
 
 }
 
-//Escribe matriz (NxN) en el fichero (file)
+//  Write (NxN) matrix onto (file)
 void outmat(FILE *file, int x[N][N]) {
 
     for (int i = 0; i < N; i++) {
@@ -53,7 +52,7 @@ void outmat(FILE *file, int x[N][N]) {
     return;
 }
 
-//Condiciones periódicas para una matriz (x) de dimensiones (NxN)
+//  Periodic conditions for an (NxN) matrix (x)
 void period(int x[N][N]) {
 
     for (int i = 0; i < N; i++) {
@@ -68,7 +67,7 @@ void period(int x[N][N]) {
 
 }
 
-//Generador int aleatorio {0,1}
+//  Random integer generator in range (0,1)
 int rnd_int() {
 
     return gsl_rng_uniform_int(tau, 2);
@@ -81,47 +80,47 @@ int main() {
     tau = gsl_rng_alloc(gsl_rng_taus);
     gsl_rng_set(tau, SEED);
 
-    //Abrimos ficheros
+    //  Open necessary files
     FILE *in;
-    in = fopen(FIN, "r"); //Fichero entrada (Con patrón generado)
+    in = fopen(FIN, "r");                   // Input file (with generated pattern)
     FILE *out;
-    out = fopen("output.txt", "w"); //Fichero salida (Con iteraciones)
-    FILE *sola;
-    sola = fopen("solapamiento.txt", "w"); //Fichero salida (Solapamiento con patrón)
+    out = fopen("output.txt", "w");         // Output file (with iterations)
+    FILE *foverlap;
+    foverlap = fopen("solapamiento.txt", "w");  // Output file (overlap with pattern)
 
-    int d[N][N]; //Matriz entrada
-    int s[N][N]; //Matriz sistema
+    int d[N][N]; // Input matrix
+    int s[N][N]; // System matrix
 
-    //Leemos fichero entrada en matriz
+    //  Read input file onto matrix
     for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) if ( fscanf(in, "%d", &d[i][j]) );
 
-    //Configuración inicial
-    if (deformado == 0) { //Aleatorio
+    //  Initial configuration
+    if (noise_deform == 0) { // Random
 
         for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) s[i][j] = rnd_int();
-        period(s); //Aplicamos condiciones periódicas
+        period(s); // Apply periodic conditions
 
-    } else { //Deformado
+    } else { // Deformed
 
-        //Igualamos matriz patrón y matriz sistema
+        //  Set patterns and system matrix equal
         for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) s[i][j] = d[i][j];
-        for (int m = 0; m < int(lambda*N*N); m++) { //Deformamos valores aleatorios
+        for (int m = 0; m < int(lambda*N*N); m++) { // Trigger random points
             int i = gsl_rng_uniform_int(tau, N);
             int j = gsl_rng_uniform_int(tau, N);
             s[i][j] = (1-s[i][j]);
         }
-        period(s); //Aplicamos condiciones periódicas
+        period(s); // Apply periodic conditions
 
     }
 
-    //Escribimos matriz sistema inicial en fichero
+    //  Write initial matrix state onto file
     outmat(out, s);
 
-    //Calculamos parámetro a^mu
+    //  Calculate parameter a^mu
     for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) a += d[i][j];
     a *= 1.0/(N*N);
 
-    //Calculamos pesos sinápticos w_ij,kl
+    //  Calculate synaptic weghts w_ij,kl
     for (int i = 0; i < N; i++) 
     for (int j = 0; j < N; j++) 
     for (int k = 0; k < N; k++) 
@@ -129,56 +128,56 @@ int main() {
         if ((i == k) && (j == l)) w[i][j][k][l] = 0.0;
         else w[i][j][k][l] = (1.0/(N*N))*(d[i][j]-a)*(d[k][l]-a);
 
-    //Calculamos umbral de disparo theta_ij
+    //  Calculate trigger threshold theta_ij
     for (int i = 0; i < N; i++) 
     for (int j = 0; j < N; j++) 
     for (int k = 0; k < N; k++) 
     for (int l = 0; l < N; l++) 
         theta[i][j] += 0.5*w[i][j][k][l];
 
-    //Calculamos solapamiento entre matriz sistema y matriz patrón
-    slpm = 0.0;
-    for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) slpm += (1.0/(N*N*a*(1.0-a)))*(d[i][j]-a)*(s[i][j]-a);
-    fprintf(sola, "%f\n", slpm);
+    //  Calculate overlap between system and pattern matrices
+    overlap = 0.0;
+    for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) overlap += (1.0/(N*N*a*(1.0-a)))*(d[i][j]-a)*(s[i][j]-a);
+    fprintf(foverlap, "%f\n", overlap);
 
-    //Bucle principal (Sobre los pasos Monte-Carlo)
+    //  Main loop (Over the Monte-Carlo steps)
     for (int b = 0; b < ITER; b++) {
 
-        //Bucle secundario (N*N para cada paso Monte-Carlo)
+        //  Secondary loop (N*N for each Monte-Carlo step)
         for (int t = 0; t < N*N; t++) {
 
-            //Punto aleatorio (i,j) de matriz sistema
+            //  Random point (i,j) of the system matrix
             int i = gsl_rng_uniform_int(tau, N);
             int j = gsl_rng_uniform_int(tau, N);
 
-            //Calculamos el hamiltoniano (Delta H)
+            //  Calculate Hamiltonian (Delta H)
             H = theta[i][j]*(1-2*s[i][j]);
             for (int k = 0; k < N; k++) for (int l = 0; l < N; l++) H += 0.5*w[i][j][k][l]*s[k][l]*(2*s[i][j]-1);
 
-            float p = minimo(1.0, exp(-H/T)); //Probabilidad cambio de spin
+            float p = minimo(1.0, exp(-H/T)); // Change of spin probability
 
             float r = gsl_rng_uniform(tau); 
 
-            //Cambiamos el spin si se cumple (r < p)
+            //  Change the spin if (r < p)
             if (r < p) {
-                s[i][j] = (1 - s[i][j]); //Cambio de valor
-                period(s); //Condiciones periódicas
+                s[i][j] = (1 - s[i][j]);    // Change value
+                period(s);                  // Periodic conditions
             }
 
         }
 
-        //Calculamos solapamiento entre matriz sistema y matriz patrón
-        slpm = 0.0;
-        for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) slpm += (1.0/(N*N*a*(1.0-a)))*(d[i][j]-a)*(s[i][j]-a);
-        fprintf(sola, "%f\n", slpm);
+        //  Calculate overlap between system and pattern matrices
+        overlap = 0.0;
+        for (int i = 0; i < N; i++) for (int j = 0; j < N; j++) overlap += (1.0/(N*N*a*(1.0-a)))*(d[i][j]-a)*(s[i][j]-a);
+        fprintf(foverlap, "%f\n", overlap);
 
-        //Escribimos matriz sistema modificada en el fichero de salida
+        //  Write modified system matrix onto output file
         outmat(out, s);
 
     }
 
     fclose(out);
-    fclose(sola);
+    fclose(foverlap);
     fclose(in);
 
     return 0;
