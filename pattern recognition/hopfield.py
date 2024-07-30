@@ -1,7 +1,3 @@
-#PROGRAMA PARA REALIZAR LA GRÁFICA DE LA CURVA DE SOLAPAMIENTO FRENTE A TEMPERATURA
-#INPUT: Fichero "solapamientot.txt" obtenido del programa "hopfield_sol.cpp"
-#OUTPUT: Gráfica "solapamientot.png" de la curva de solapamiento
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -11,7 +7,7 @@ plt.rcParams["animation.convert_path"] = "/usr/bin/convert"
 
 fname = "output"
 
-data = np.loadtxt(fname+".txt") #FICHERO DE MATRICES
+data = np.loadtxt(fname+".txt")
 
 color_dict = {0: '#2D4263', 1: '#C84B31'}
 label_dict = {0: 'off', 1: 'on'}
@@ -19,10 +15,9 @@ imax = max(label_dict)
 imin = min(label_dict)
 cmap = col.ListedColormap(color_dict.values())
 
-dim = int(len(data[0])) #DIMENSION DE LA MATRIZ
-iter = int(len(data[:,0])/(dim)) #NUMERO DE ITERACIONES
+dim = int(len(data[0]))
+iter = int(len(data[:,0])/(dim))
 
-#MATRIZ
 grid = np.zeros((dim,dim))
 
 def update(k):
